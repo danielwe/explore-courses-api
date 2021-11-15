@@ -1,17 +1,18 @@
 """
-This module implements the CourseConnection class, which is the main entrypoint 
+This module implements the CourseConnection class, which is the main entrypoint
 for the Explore Courses API.
 """
 
-import requests
-from typing import List, Tuple
+from typing import List
 import xml.etree.ElementTree as ET
+import requests
 
 from explorecourses.classes import School, Course
 
-class CourseConnection():
+
+class CourseConnection:
     """
-    This class is the main entrypoint for the Explore Courses API, which 
+    This class is the main entrypoint for the Explore Courses API, which
     establishes the HTTP connection and makes all requests.
 
     """
@@ -26,13 +27,12 @@ class CourseConnection():
 
         self._session = requests.Session()
 
-
     def get_schools(self, academic_year=None) -> List[School]:
         """
         Gets all schools within the university.
 
         Args:
-            academic_year (Optional[str]): The academic year within which to 
+            academic_year (Optional[str]): The academic year within which to
                 retrive schools from (e.g., "2017-2018"). Defaults to None.
 
         Returns:
@@ -40,17 +40,13 @@ class CourseConnection():
 
         """
 
-        payload = {
-            "view": "xml-20200810",
-            "year": academic_year.replace('-', '')
-        }
+        payload = {"view": "xml-20200810", "year": academic_year.replace("-", "")}
         res = self._session.get(self._URL, params=payload)
 
         root = ET.fromstring(res.content)
         schools = root.findall(".//school")
 
         return [School(school) for school in schools]
-
 
     def get_school(self, name: str) -> School:
         """
@@ -65,15 +61,14 @@ class CourseConnection():
         """
 
         schools = self.get_schools()
-        f = lambda school, name: school.name == name
 
-        idx = [idx for idx, school in enumerate(schools) if f(school, name)]
+        idx = [idx for idx, school in enumerate(schools) if school.name == name]
 
         return schools[idx[0]] if idx else None
 
-
-    def get_courses_by_department(self, code: str, *filters: str, 
-                                  year=None) -> List[Course]:
+    def get_courses_by_department(
+        self, code: str, *filters: str, year=None
+    ) -> List[Course]:
 
         """
         Gets all courses listed under a given department.
@@ -81,7 +76,7 @@ class CourseConnection():
         Args:
             code (str): The department code.
             *filters (str): Search query filters.
-            year (Optional[str]): The academic year within which to retrieve 
+            year (Optional[str]): The academic year within which to retrieve
                 courses (e.g., "2017-2018"). Defaults to None.
 
         Returns:
@@ -94,9 +89,9 @@ class CourseConnection():
 
         return self.get_courses_by_query(code, *filters, year=year)
 
-
-    def get_courses_by_query(self, query: str, *filters: str, 
-                             year=None) -> List[Course]:
+    def get_courses_by_query(
+        self, query: str, *filters: str, year=None
+    ) -> List[Course]:
 
         """
         Gets all courses matched by a search query.
@@ -104,7 +99,7 @@ class CourseConnection():
         Args:
             query (str): The search query.
             *filters (str): Search query filters.
-            year (Optional[str]): The academic year within which to retrieve 
+            year (Optional[str]): The academic year within which to retrieve
                 courses (e.g., "2017-2018"). Defaults to None.
 
         Returns:
@@ -121,7 +116,7 @@ class CourseConnection():
         }
         payload.update({f: "on" for f in filters})
         if year:
-            payload.update({"academicYear": year.replace('-', '')})
+            payload.update({"academicYear": year.replace("-", "")})
 
         res = self._session.get(url, params=payload)
 
