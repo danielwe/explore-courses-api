@@ -3,7 +3,7 @@ from explorecourses.classes import School, Department, Course, Instructor, \
                                    Attribute, Tag, Schedule, LearningObjective, \
                                    Section
 
-__version__ = '1.0.4'
+__version__ = '1.0.6'
 
 __author__ = 'Jeremy Ephron <jeremye@stanford.edu>'
 
