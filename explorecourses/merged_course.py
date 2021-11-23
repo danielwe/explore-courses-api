@@ -1,9 +1,8 @@
 """
-Implements the MergedCourse class, which computes and represents merged cross-listings
+Implements the MergedCourse class, which computes and represents merged course listings
 
 """
 
-from collections import deque
 from dataclasses import dataclass
 import re
 from typing import FrozenSet, Iterable, List, Optional, Tuple
@@ -20,7 +19,7 @@ from explorecourses.classes import (
 
 @dataclass(frozen=True)
 class MergedCourse:
-    """A course with all cross-listings merged"""
+    """Unified representation of all listings of a course"""
 
     year: str
     subject: Tuple[str]
@@ -44,29 +43,25 @@ class MergedCourse:
     @classmethod
     def from_courses(cls, courses: Iterable[Course]):
         """Construct new MergedCourse from a collection of Course objects"""
-        courses = sorted(set(courses))
-        base = courses[0]
-        rest = courses[1:]
+        citer = iter(set(courses))
+        base = next(citer)
+        rest = list(citer)
 
         title_stop = len(base.title)
         title_match = cls._crosslist_paren.search(base.title)
         if title_match is not None:
             title_stop = title_match.start()
 
-        if not all(
-            (c.year, c.administrative_information.course_id)
-            == (base.year, base.administrative_information.course_id)
-            for c in rest
-        ):
+        if any((base.year, base.course_id) != (c.year, c.course_id) for c in rest):
             raise ValueError("not all entries are cross-listings of same course")
-        assert all(c.title[:title_stop] == base.title[:title_stop] for c in rest)
-        assert all(c.description == base.description for c in rest)
-        assert all(c.repeatable == base.repeatable for c in rest)
-        assert all(c.grading == base.grading for c in rest)
-        assert all(c.units_min == base.units_min for c in rest)
-        assert all(c.units_max == base.units_max for c in rest)
-        assert all(c.learning_objectives == base.learning_objectives for c in rest)
-        assert all(c.attributes == base.attributes for c in rest)
+        assert all(base.title[:title_stop] == c.title[:title_stop] for c in rest)
+        assert all(base.description == c.description for c in rest)
+        assert all(base.repeatable == c.repeatable for c in rest)
+        assert all(base.grading == c.grading for c in rest)
+        assert all(base.units_min == c.units_min for c in rest)
+        assert all(base.units_max == c.units_max for c in rest)
+        assert all(base.learning_objectives == c.learning_objectives for c in rest)
+        assert all(base.attributes == c.attributes for c in rest)
 
         return cls(
             base.year,
@@ -91,8 +86,8 @@ class MergedCourse:
         )
 
     @property
-    def course_codes(self):
-        """Course codes"""
+    def course_code(self):
+        """Course codes for all listings"""
         return tuple(f"{s} {c}" for s, c in zip(self.subject, self.code))
 
     @property
@@ -103,16 +98,13 @@ class MergedCourse:
     @classmethod
     def merge_crosslistings(cls, courses: Iterable[Course]) -> List:
         """Merge all cross-listings of the same courses in a collection of courses"""
-        courses = sorted(set(courses), reverse=True)
+        courses = set(courses)
         merged_courses = []
         while courses:
             base = courses.pop()
             group = [base]
             for course in list(courses):
-                if (course.year, course.administrative_information.course_id) == (
-                    base.year,
-                    base.administrative_information.course_id,
-                ):
+                if (base.year, base.course_id) == (course.year, course.course_id):
                     group.append(course)
                     courses.remove(course)
             merged_courses.append(cls.from_courses(group))
