@@ -23,8 +23,8 @@ class MergedCourse:
     """A course with all cross-listings merged"""
 
     year: str
-    subjects: Tuple[str]
-    codes: Tuple[str]
+    subject: Tuple[str]
+    code: Tuple[str]
     title: str
     description: str
     gers: Tuple[FrozenSet[str]]
@@ -97,7 +97,7 @@ class MergedCourse:
     @property
     def course_codes(self):
         """Course codes"""
-        return tuple(f"{s} {c}" for s, c in zip(self.subjects, self.codes))
+        return tuple(f"{s} {c}" for s, c in zip(self.subject, self.code))
 
     @classmethod
     def merge_crosslistings(cls, courses: Iterable[Course]) -> List:
