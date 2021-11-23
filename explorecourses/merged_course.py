@@ -60,17 +60,14 @@ class MergedCourse:
         ):
             raise ValueError("not all entries are cross-listings of same course")
         assert all(c.title[:title_stop] == base.title[:title_stop] for c in rest)
-        for attr in (
-            "description",
-            "repeatable",
-            "grading",
-            "units_min",
-            "units_max",
-            "remote",
-            "learning_objectives",
-            "attributes",
-        ):
-            assert all(getattr(c, attr) == getattr(base, attr) for c in rest)
+        assert all(c.description == base.description for c in rest)
+        assert all(c.repeatable == base.repeatable for c in rest)
+        assert all(c.grading == base.grading for c in rest)
+        assert all(c.units_min == base.units_min for c in rest)
+        assert all(c.units_max == base.units_max for c in rest)
+        assert all(c.remote == base.remote for c in rest)
+        assert all(c.learning_objectives == base.learning_objectives for c in rest)
+        assert all(c.attributes == base.attributes for c in rest)
 
         return cls(
             base.year,
