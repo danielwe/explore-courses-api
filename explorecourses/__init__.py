@@ -1,17 +1,20 @@
+"""Stanford ExploreCourses API"""
+
 from explorecourses.course_connection import CourseConnection
 from explorecourses.classes import (
-    School,
-    Department,
     Course,
-    Instructor,
-    Attribute,
-    Tag,
-    Schedule,
     LearningObjective,
     Section,
+    Schedule,
+    Instructor,
+    Attribute,
+    AdministrativeInformation,
+    Tag,
+    School,
+    Department,
 )
 
-__version__ = "1.0.6"
+__version__ = "2.0.0"
 
 __author__ = (
     "Jeremy Ephron <jeremye@stanford.edu>, Daniel Wennberg <daniel.wennberg@gmail.com>"
@@ -19,13 +22,14 @@ __author__ = (
 
 __all__ = [
     "CourseConnection",
-    "School",
-    "Department",
     "Course",
-    "Instructor",
-    "Attribute",
-    "Tag",
-    "Schedule",
     "LearningObjective",
     "Section",
+    "Schedule",
+    "Instructor",
+    "Attribute",
+    "AdministrativeInformation",
+    "Tag",
+    "School",
+    "Department",
 ]

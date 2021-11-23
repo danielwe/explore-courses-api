@@ -1,6 +1,6 @@
 """
-This module implements the CourseConnection class, which is the main entrypoint
-for the Explore Courses API.
+Implements the CourseConnection class, the main entrypoint for the ExploreCourses API
+
 """
 
 from typing import List
@@ -12,115 +12,98 @@ from explorecourses.classes import School, Course
 
 class CourseConnection:
     """
-    This class is the main entrypoint for the Explore Courses API, which
-    establishes the HTTP connection and makes all requests.
+    Main entrypoint for the Explore Courses API
+
+    Establishes the HTTP connection and makes requests.
 
     """
 
     _URL = "https://explorecourses.stanford.edu/"
 
     def __init__(self):
-        """
-        Constructs a new CourseConnection by beginning a requests session.
-
-        """
-
         self._session = requests.Session()
 
-    def get_schools(self, academic_year=None) -> List[School]:
+    def find_schools(self, year=None) -> List[School]:
         """
-        Gets all schools within the university.
+        Find all schools at the university
 
         Args:
-            academic_year (Optional[str]): The academic year within which to
-                retrive schools from (e.g., "2017-2018"). Defaults to None.
+            year (Optional[str]): Academic year for which to retrive schools, e.g.,
+                "2021-2022". Defaults to None, which selects the current year.
 
         Returns:
-            List[School]: The schools contained within the university.
+            List[School]: All schools at the university
 
         """
-
-        payload = {"view": "xml-20200810", "year": academic_year.replace("-", "")}
+        payload = {"view": "xml-20200810"}
+        if year is not None:
+            payload["academicYear"] = year.replace("-", "")
         res = self._session.get(self._URL, params=payload)
-
         root = ET.fromstring(res.content)
-        schools = root.findall(".//school")
+        return [School.from_xml(school) for school in root.findall(".//school")]
 
-        return [School(school) for school in schools]
-
-    def get_school(self, name: str) -> School:
+    def find_school(self, name: str) -> School:
         """
-        Gets a school within the university by name.
+        Find a school within the university by name
 
         Args:
-            name (str): The name of the school.
+            name (str): Name of the school
 
         Returns:
-            School: The school if it exists, None otherwise.
+            School: The school if it exists, otherwise None
 
         """
+        for school in self.find_schools():
+            if school.name == name:
+                return school
+        raise ValueError(f"no school named {name}")
 
-        schools = self.get_schools()
-
-        idx = [idx for idx, school in enumerate(schools) if school.name == name]
-
-        return schools[idx[0]] if idx else None
-
-    def get_courses_by_department(
-        self, code: str, *filters: str, year=None
+    def find_courses_by_subject(
+        self, subject: str, *filters: str, year=None
     ) -> List[Course]:
 
         """
-        Gets all courses listed under a given department.
+        Find all courses under a given subject
 
         Args:
-            code (str): The department code.
-            *filters (str): Search query filters.
-            year (Optional[str]): The academic year within which to retrieve
-                courses (e.g., "2017-2018"). Defaults to None.
+            subject (str): Subject code, e.g., "MATH"
+            *filters (str): Search filters
+            year (Optional[str]): Academic year for which to retrieve courses, e.g.,
+                "2021-2022". Defaults to None, which selects the current year.
 
         Returns:
-            List[Course]: The courses listed under the given department.
+            List[Course]: All courses offered by the department
 
         """
-
         filters = list(filters)
-        filters.append(f"filter-departmentcode-{code}")
+        filters.append(f"filter-departmentcode-{subject}")
+        return self.find_courses_by_query(subject, *filters, year=year)
 
-        return self.get_courses_by_query(code, *filters, year=year)
-
-    def get_courses_by_query(
+    def find_courses_by_query(
         self, query: str, *filters: str, year=None
     ) -> List[Course]:
 
         """
-        Gets all courses matched by a search query.
+        Find all courses matching a search query
 
         Args:
-            query (str): The search query.
-            *filters (str): Search query filters.
-            year (Optional[str]): The academic year within which to retrieve
-                courses (e.g., "2017-2018"). Defaults to None.
+            query (str): Search query
+            *filters (str): Search filters
+            year (Optional[str]): Academic year for which to retrieve courses, e.g.,
+                "2021-2022". Defaults to None, which selects the current year.
 
         Returns:
-            List[Course]: The courses matching the search query.
+            List[Course]: Courses matching the search query
 
         """
-
-        url = self._URL + "search"
-
         payload = {
             "view": "xml-20200810",
             "filter-coursestatus-Active": "on",
             "q": query,
         }
         payload.update({f: "on" for f in filters})
-        if year:
-            payload.update({"academicYear": year.replace("-", "")})
-
-        res = self._session.get(url, params=payload)
-
+        if year is not None:
+            payload["academicYear"] = year.replace("-", "")
+        res = self._session.get(self._URL + "search", params=payload)
         root = ET.fromstring(res.content)
-        courses = root.findall(".//course")
-
-        return [Course(course) for course in courses]
+        return [Course.from_xml(course) for course in root.findall(".//course")]
