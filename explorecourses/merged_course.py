@@ -99,6 +99,11 @@ class MergedCourse:
         """Course codes"""
         return tuple(f"{s} {c}" for s, c in zip(self.subject, self.code))
 
+    @property
+    def course_id(self):
+        """Unique course id"""
+        return self.administrative_information[0].course_id
+
     @classmethod
     def merge_crosslistings(cls, courses: Iterable[Course]) -> List:
         """Merge all cross-listings of the same courses in a collection of courses"""

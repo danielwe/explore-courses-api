@@ -318,6 +318,11 @@ class Course:
         """Course code"""
         return f"{self.subject} {self.code}"
 
+    @property
+    def course_id(self):
+        """Unique course id"""
+        return self.administrative_information.course_id
+
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
