@@ -13,6 +13,7 @@ from explorecourses.classes import (
     School,
     Department,
 )
+from explorecourses.merged_course import MergedCourse
 
 __version__ = "2.0.0"
 
@@ -22,6 +23,7 @@ __author__ = (
 
 __all__ = [
     "CourseConnection",
+    "MergedCourse",
     "Course",
     "LearningObjective",
     "Section",
