@@ -44,9 +44,9 @@ class MergedCourse:
     @classmethod
     def from_courses(cls, courses: Iterable[Course]):
         """Construct new MergedCourse from a collection of Course objects"""
-        cit = iter(courses)
-        base = next(cit)
-        rest = list(cit)
+        courses = sorted(set(courses))
+        base = courses[0]
+        rest = courses[1:]
 
         title_stop = len(base.title)
         title_match = cls._crosslist_paren.search(base.title)
@@ -107,10 +107,10 @@ class MergedCourse:
     @classmethod
     def merge_crosslistings(cls, courses: Iterable[Course]) -> List:
         """Merge all cross-listings of the same courses in a collection of courses"""
-        courses = deque(courses)
+        courses = sorted(set(courses), reverse=True)
         merged_courses = []
         while courses:
-            base = courses.popleft()
+            base = courses.pop()
             group = [base]
             for course in list(courses):
                 if (course.year, course.administrative_information.course_id) == (
