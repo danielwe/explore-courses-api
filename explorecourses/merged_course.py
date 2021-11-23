@@ -32,7 +32,7 @@ class MergedCourse:
     grading: str
     units_min: int
     units_max: int
-    remote: Optional[bool]
+    remote: Tuple[Optional[bool]]
     learning_objectives: FrozenSet[LearningObjective]
     sections: Tuple[FrozenSet[Section]]
     administrative_information: Tuple[AdministrativeInformation]
@@ -65,7 +65,6 @@ class MergedCourse:
         assert all(c.grading == base.grading for c in rest)
         assert all(c.units_min == base.units_min for c in rest)
         assert all(c.units_max == base.units_max for c in rest)
-        assert all(c.remote == base.remote for c in rest)
         assert all(c.learning_objectives == base.learning_objectives for c in rest)
         assert all(c.attributes == base.attributes for c in rest)
 
@@ -80,7 +79,7 @@ class MergedCourse:
             base.grading,
             base.units_min,
             base.units_max,
-            base.remote,
+            (base.remote, *(c.remote for c in rest)),
             base.learning_objectives,
             (base.sections, *(c.sections for c in rest)),
             (
