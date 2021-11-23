@@ -4,6 +4,7 @@ Implements the MergedCourse class, which computes and represents merged course l
 """
 
 from dataclasses import dataclass
+from functools import total_ordering
 import re
 from typing import FrozenSet, Iterable, List, Optional, Tuple
 
@@ -17,6 +18,7 @@ from explorecourses.classes import (
 )
 
 
+@total_ordering
 @dataclass(frozen=True)
 class MergedCourse:
     """Unified representation of all listings of a course"""
@@ -43,9 +45,9 @@ class MergedCourse:
     @classmethod
     def from_courses(cls, courses: Iterable[Course]):
         """Construct new MergedCourse from a collection of Course objects"""
-        citer = iter(set(courses))
-        base = next(citer)
-        rest = list(citer)
+        courses = sorted(set(courses))
+        base = courses[0]
+        rest = courses[1:]
 
         title_stop = len(base.title)
         title_match = cls._crosslist_paren.search(base.title)
@@ -95,17 +97,27 @@ class MergedCourse:
         """Unique course id"""
         return self.administrative_information[0].course_id
 
-    @classmethod
-    def merge_crosslistings(cls, courses: Iterable[Course]) -> List:
-        """Merge all cross-listings of the same courses in a collection of courses"""
-        courses = set(courses)
-        merged_courses = []
-        while courses:
-            base = courses.pop()
-            group = [base]
-            for course in list(courses):
-                if (base.year, base.course_id) == (course.year, course.course_id):
-                    group.append(course)
-                    courses.remove(course)
-            merged_courses.append(cls.from_courses(group))
-        return merged_courses
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.course_code == other.course_code
+
+    def __lt__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.course_code < other.course_code
+
+
+def merge_crosslistings(courses: Iterable[Course]) -> List[MergedCourse]:
+    """Merge cross-listings of the same course in a collection of courses"""
+    courses = set(courses)
+    merged_courses = []
+    while courses:
+        base = courses.pop()
+        group = [base]
+        for course in list(courses):
+            if (base.year, base.course_id) == (course.year, course.course_id):
+                group.append(course)
+                courses.remove(course)
+        merged_courses.append(MergedCourse.from_courses(group))
+    return merged_courses

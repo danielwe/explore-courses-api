@@ -13,7 +13,7 @@ from explorecourses.classes import (
     School,
     Department,
 )
-from explorecourses.merged_course import MergedCourse
+from explorecourses.merged_course import MergedCourse, merge_crosslistings
 
 __version__ = "2.0.0"
 
@@ -34,4 +34,5 @@ __all__ = [
     "Tag",
     "School",
     "Department",
+    "merge_crosslistings",
 ]
