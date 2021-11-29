@@ -298,7 +298,7 @@ class Course:
             elem.findtext("subject"),
             elem.findtext("code"),
             elem.findtext("title"),
-            html.unescape(elem.findtext("description")),
+            html.unescape(html.unescape(elem.findtext("description"))),
             frozenset(elem.findtext("gers").split(", ")),
             elem.findtext("repeatable") == "true",
             elem.findtext("grading"),
