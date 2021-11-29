@@ -23,7 +23,7 @@ class CourseConnection:
     def __init__(self):
         self._session = requests.Session()
 
-    def find_schools(self, year=None) -> List[School]:
+    def schools(self, year=None) -> List[School]:
         """
         Find all schools at the university
 
@@ -42,7 +42,7 @@ class CourseConnection:
         root = ET.fromstring(res.content)
         return [School.from_xml(school) for school in root.findall(".//school")]
 
-    def find_school(self, name: str) -> School:
+    def school(self, name: str) -> School:
         """
         Find a school within the university by name
 
@@ -53,12 +53,12 @@ class CourseConnection:
             School: The school if it exists, otherwise None
 
         """
-        for school in self.find_schools():
+        for school in self.schools():
             if school.name == name:
                 return school
         raise ValueError(f"no school named {name}")
 
-    def find_courses_by_subject(
+    def courses_by_subject(
         self, subject: str, *filters: str, year=None
     ) -> List[Course]:
 
@@ -77,11 +77,9 @@ class CourseConnection:
         """
         filters = list(filters)
         filters.append(f"filter-departmentcode-{subject}")
-        return self.find_courses_by_query(subject, *filters, year=year)
+        return self.courses_by_query(subject, *filters, year=year)
 
-    def find_courses_by_query(
-        self, query: str, *filters: str, year=None
-    ) -> List[Course]:
+    def courses_by_query(self, query: str, *filters: str, year=None) -> List[Course]:
 
         """
         Find all courses matching a search query

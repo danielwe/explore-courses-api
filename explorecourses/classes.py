@@ -57,7 +57,7 @@ class School:
             frozenset(Department.from_xml(dept) for dept in elem.findall("department")),
         )
 
-    def find_department(self, name: str) -> Department:
+    def department(self, name: str) -> Department:
         """
         Find department within the school
 
