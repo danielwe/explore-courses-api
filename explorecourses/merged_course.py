@@ -21,7 +21,7 @@ from explorecourses.classes import (
 @total_ordering
 @dataclass(frozen=True)
 class MergedCourse:
-    """Unified representation of all listings of a course"""
+    """Unified representation of multiple listings of a course"""
 
     year: str
     subject: Tuple[str]
@@ -40,7 +40,7 @@ class MergedCourse:
     attributes: FrozenSet[Attribute]
     tags: Tuple[FrozenSet[Tag]]
 
-    _crosslist_paren = re.compile(r" \([^)]*\)$")
+    _crosslist_codes_pattern = re.compile(r" \([^)]*\)$")
 
     @classmethod
     def from_courses(cls, courses: Iterable[Course]):
@@ -50,12 +50,15 @@ class MergedCourse:
         rest = courses[1:]
 
         title_stop = len(base.title)
-        title_match = cls._crosslist_paren.search(base.title)
+        title_match = cls._crosslist_codes_pattern.search(base.title)
         if title_match is not None:
             title_stop = title_match.start()
 
         if any((base.year, base.course_id) != (c.year, c.course_id) for c in rest):
-            raise ValueError("not all entries are cross-listings of same course")
+            raise ValueError("not all entries are listings of the same course")
+
+        # I _think_ the following are always equal for crosslistings. The asserts are to
+        # notify of exceptions such that the class layout can be adjusted accordingly.
         assert all(base.title[:title_stop] == c.title[:title_stop] for c in rest)
         assert all(base.description == c.description for c in rest)
         assert all(base.repeatable == c.repeatable for c in rest)
@@ -100,12 +103,15 @@ class MergedCourse:
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.course_code == other.course_code
+        return (self.year, self.course_code) == (other.year, other.course_code)
 
     def __lt__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.course_code < other.course_code
+        return (self.year, self.course_code) < (other.year, other.course_code)
+
+    def __hash__(self):
+        return hash((self.year, self.course_code))
 
 
 def merge_crosslistings(courses: Iterable[Course]) -> List[MergedCourse]:

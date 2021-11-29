@@ -326,9 +326,12 @@ class Course:
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.course_code == other.course_code
+        return (self.year, self.course_code) == (other.year, other.course_code)
 
     def __lt__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.course_code < other.course_code
+        return (self.year, self.course_code) < (other.year, other.course_code)
+
+    def __hash__(self):
+        return hash((self.year, self.course_code))
