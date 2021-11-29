@@ -4,6 +4,7 @@ Implements the MergedCourse class, which computes and represents merged course l
 """
 
 from dataclasses import dataclass
+from collections import defaultdict
 from functools import total_ordering
 import re
 from typing import FrozenSet, Iterable, List, Optional, Tuple
@@ -116,14 +117,7 @@ class MergedCourse:
 
 def merge_crosslistings(courses: Iterable[Course]) -> List[MergedCourse]:
     """Merge cross-listings of the same course in a collection of courses"""
-    courses = set(courses)
-    merged_courses = []
-    while courses:
-        base = courses.pop()
-        group = [base]
-        for course in list(courses):
-            if (base.year, base.course_id) == (course.year, course.course_id):
-                group.append(course)
-                courses.remove(course)
-        merged_courses.append(MergedCourse.from_courses(group))
-    return merged_courses
+    course_groups = defaultdict(list)
+    for course in courses:
+        course_groups[(course.year, course.course_id)].append(course)
+    return [MergedCourse.from_courses(group) for group in course_groups.values()]
