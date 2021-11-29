@@ -17,6 +17,7 @@ Includes:
 
 from dataclasses import dataclass
 from functools import total_ordering
+import html
 from typing import FrozenSet, Optional, Tuple
 from xml.etree.ElementTree import Element
 
@@ -297,7 +298,7 @@ class Course:
             elem.findtext("subject"),
             elem.findtext("code"),
             elem.findtext("title"),
-            elem.findtext("description"),
+            html.unescape(elem.findtext("description")),
             frozenset(elem.findtext("gers").split(", ")),
             elem.findtext("repeatable") == "true",
             elem.findtext("grading"),
