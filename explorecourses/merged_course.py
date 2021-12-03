@@ -22,33 +22,27 @@ from explorecourses.classes import (
 @total_ordering
 @dataclass(frozen=True)
 class MergedCourse:
-    """Unified representation of multiple listings of a course"""
+    """Container and unified representation of multiple listings of a course"""
 
     year: str
-    subject: Tuple[str]
-    code: Tuple[str]
     title: str
     description: str
-    gers: Tuple[FrozenSet[str]]
     repeatable: bool
     grading: str
     units_min: int
     units_max: int
-    remote: Tuple[Optional[bool]]
     learning_objectives: FrozenSet[LearningObjective]
-    sections: Tuple[FrozenSet[Section]]
-    administrative_information: Tuple[AdministrativeInformation]
     attributes: FrozenSet[Attribute]
-    tags: Tuple[FrozenSet[Tag]]
+    _listings: Tuple[Course]
 
     _crosslist_codes_pattern = re.compile(r" \([^)]*\)$")
 
     @classmethod
-    def from_courses(cls, courses: Iterable[Course]):
+    def from_listings(cls, listings: Iterable[Course]):
         """Construct new MergedCourse from a collection of Course objects"""
-        courses = sorted(set(courses))
-        base = courses[0]
-        rest = courses[1:]
+        listings = tuple(sorted(set(listings)))
+        base = listings[0]
+        rest = listings[1:]
 
         title_stop = len(base.title)
         title_match = cls._crosslist_codes_pattern.search(base.title)
@@ -71,35 +65,32 @@ class MergedCourse:
 
         return cls(
             base.year,
-            (base.subject, *(c.subject for c in rest)),
-            (base.code, *(c.code for c in rest)),
             base.title[:title_stop],
             base.description,
-            (base.gers, *(c.gers for c in rest)),
             base.repeatable,
             base.grading,
             base.units_min,
             base.units_max,
-            (base.remote, *(c.remote for c in rest)),
             base.learning_objectives,
-            (base.sections, *(c.sections for c in rest)),
-            (
-                base.administrative_information,
-                *(c.administrative_information for c in rest),
-            ),
             base.attributes,
-            (base.tags, *(c.tags for c in rest)),
+            listings,
         )
+
+    def __getitem__(self, index):
+        return self._listings[index]
+
+    def __len__(self):
+        return len(self._listings)
 
     @property
     def course_code(self):
         """Course codes for all listings"""
-        return tuple(f"{s} {c}" for s, c in zip(self.subject, self.code))
+        return tuple(f"{listing.subject} {listing.code}" for listing in self)
 
     @property
     def course_id(self):
         """Unique course id"""
-        return self.administrative_information[0].course_id
+        return self[0].administrative_information.course_id
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -120,4 +111,4 @@ def merge_crosslistings(courses: Iterable[Course]) -> List[MergedCourse]:
     course_groups = defaultdict(list)
     for course in courses:
         course_groups[(course.year, course.course_id)].append(course)
-    return [MergedCourse.from_courses(group) for group in course_groups.values()]
+    return [MergedCourse.from_listings(group) for group in course_groups.values()]
